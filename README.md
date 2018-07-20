@@ -7,7 +7,7 @@ A user approached our window and activated a touch sensor that would then send a
 This repository is a sample of the code that was written to control each scene change.
 
 ### Tools Used
-Unity, Mixamo, Arduino, Serial (OSC Connection)
+Unity, Mixamo, Arduino, Serial (OSC Connection), C Sharp
 
 Original Scene
 
