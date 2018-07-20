@@ -96,31 +96,29 @@ public class mainScript : MonoBehaviour {
 	private Rigidbody rb_cupcake;
 
 
+	// opening up serial port between arduino and unity 
 	SerialPort sp = new SerialPort("/dev/cu.usbmodem1421",115200);
 	float timeLeft = 30.0f;
 	int serialNum;
 
-	// Use this for initialization
+	// initialization
 	void Start () {
 
 		int lastPos = PlayerPrefs.GetInt("servoPos");
-		//print ( "Last Value Was " +  lastPos.ToString() );
 
-		// ANIMATORS
+		// animators
 		claireAnimator = claire.GetComponent<Animator> ();
 		grannyAnimator = granny.GetComponent<Animator> ();
 		ajAnimator = aj.GetComponent<Animator> ();
 		kayaAnimator = kaya.GetComponent<Animator> ();
 
-		// FIND LAYERS UNDER MAIN
-
+		// gameobject characters
 		gorilla = GameObject.Find("gorillaDestroys");
 		door = GameObject.Find("Door");
 		cupcakes = GameObject.Find("hiddenCupcakes");
 		women = GameObject.Find("Women");
 
-		// SAVE POSITIONS
-
+		// saving positions
 		initialPosition_aj = aj.transform.position;
 		initialPosition_claire = claire.transform.position;
 		initialPosition_granny = granny.transform.position;
@@ -131,6 +129,7 @@ public class mainScript : MonoBehaviour {
 		initialPosition_innerDoor = innerDoor.transform.position;
 		initialPosition_kaya = kaya.transform.position;
 
+		// saving rotations
 		initialRotation_aj = aj.transform.rotation;
 		initialRotation_claire = claire.transform.rotation;
 		initialRotation_granny = granny.transform.rotation;
@@ -141,18 +140,20 @@ public class mainScript : MonoBehaviour {
 		initialRotation_innerDoor = innerDoor.transform.rotation;
 		initialRotation_kaya = kaya.transform.rotation;
 
+		// saving positions and rotations from multiple objects at once 
+		// chairs
 		for (int i = 0; i < chairs.transform.childCount; i++) {
 			Transform kid = chairs.transform.GetChild (i);
 			chairPos.Add(kid.transform.position);
 			chairRot.Add(kid.transform.rotation);
 		}
-
+		// dishes + plates
 		for (int i = 0; i < dishes.transform.childCount; i++) {
 			Transform dish = dishes.transform.GetChild (i);
 			dishesPos.Add(dish.transform.position);
 			dishesRot.Add(dish.transform.rotation);
 		}
-
+		//cupcakes
 		for (int i = 0; i < cupcakesObj.transform.childCount; i++) {
 			Transform cupcakeChild = cupcakesObj.transform.GetChild (i);
 			cupcakesPos.Add(cupcakeChild.transform.position);
@@ -160,20 +161,22 @@ public class mainScript : MonoBehaviour {
 		}
 
 
-		// FLOAT
-
+		// floating movement 
 		xMovement = Random.Range (-.5f, .5f) * horizontalSpeed;   //random value between -0.5 and 0.5, causing some movement on the x axis.
 		xtorque = Random.Range (-5.0f, 5.0f) * spinSpeed;	//turns the object on the x axis
 		ytorque = Random.Range (-5.0f, 5.0f) * spinSpeed;	//turns the object on the y axis
 		ztorque = Random.Range (-5.0f, 5.0f) * spinSpeed;	//turns the object on the z axis
 
+		// opening serial port 
 		sp.Open();
 		sp.ReadTimeout = 5;
+		// hiding layer 
 		foreach (Transform child in gameObject.transform) {
 			child.gameObject.SetActive (false);
 		}
 	}
 
+	// adding text to canvas screen 
 	public static Text AddTextToCanvas(string textString, GameObject canvasGameObject)
 	{
 		Text text = canvasGameObject.AddComponent<Text>();
@@ -189,11 +192,11 @@ public class mainScript : MonoBehaviour {
 
 	// Update is called once per frame
 	void Update () {
-
+		// checking if serial is open
 		if (sp.IsOpen)
 		{
 			print ("serial is open(arduino been restarted)");
-
+			// reading output from serial 
 			try
 			{
 				serialNum = sp.ReadByte ();
@@ -204,18 +207,21 @@ public class mainScript : MonoBehaviour {
 				print ("error");
 			}
 		}
+		// once you receive output then perform animation
 		TurnOn(serialNum);
 	}
 
+	// animations. It resets every 30 seconds to original scene
 	void TurnOn(int Value)
 	{
 		PlayerPrefs.SetInt("servoPos", Value);
 		//print(timeLeft);
 		print(Value);
 
+		// if output is 5 from serial -> CUPCAKE RAIN ANIMATION
 		if (Value == 5 & timeLeft > 0) {
-			// CUPCAKE RAIN ANIMATION
 
+			// resetting everything 
 			if (aj.transform.position != initialPosition_aj & resetC == false) {
 				resetF = false;
 				resetH = false;
@@ -223,6 +229,7 @@ public class mainScript : MonoBehaviour {
 				resetD = false;
 				resetW = false;
 
+				// turn on layers 
 				women.SetActive (true);
 				gorilla.SetActive (false);
 				door.SetActive (false);
@@ -231,6 +238,7 @@ public class mainScript : MonoBehaviour {
 				dirlight.GetComponent<Light> ().intensity = 1.8f;
 				Destroy (textCanvas.GetComponent<Text> (), 0f);
 
+				// play animations
 				claireAnimator.Play ("Sitting");
 				grannyAnimator.Play ("Sitting");
 				ajAnimator.Play ("Sitting");
@@ -263,13 +271,7 @@ public class mainScript : MonoBehaviour {
 				//kaya
 				kaya.transform.position = initialPosition_kaya;
 				kaya.transform.rotation = initialRotation_kaya;
-//
-//				//door
-//				outerDoor.transform.position = initialPosition_outerDoor;
-//				outerDoor.transform.rotation = initialRotation_outerDoor;
-//
-//				innerDoor.transform.position = initialPosition_innerDoor;
-//				innerDoor.transform.rotation = initialRotation_innerDoor;
+
 
 				//chairs
 				for (int i = 0; i < chairs.transform.childCount; i++) {
@@ -292,7 +294,7 @@ public class mainScript : MonoBehaviour {
 					cupcakeChild.transform.rotation = cupcakesRot [i];
 				}
 
-				// RESET FLOAT
+				// reset rigidbodies
 				rb_aj = aj.GetComponent<Rigidbody> ();
 				rb_aj.useGravity = true;
 				rb_aj.mass = 100f;
@@ -352,7 +354,7 @@ public class mainScript : MonoBehaviour {
 
 				resetC = true;
 			}
-
+			// make characters dance and show cupcake layer where they rain 
 			claireAnimator.Play ("Salsa Dancing");
 			grannyAnimator.Play ("Salsa Dancing");
 			ajAnimator.Play ("Salsa Dancing");
@@ -361,10 +363,9 @@ public class mainScript : MonoBehaviour {
 			cupcakes.SetActive (true);
 			timeLeft -= Time.deltaTime;
 
-
+		// if output is 4 from serial -> GORILLA ANIMATION
 		} else if (Value == 4 & timeLeft > 0) {
-			// GORILLA ANIMATION
-
+			// resetting everything
 			if (aj.transform.position != initialPosition_aj & resetG == false) {
 				resetF = false;
 				resetH = false;
@@ -412,13 +413,6 @@ public class mainScript : MonoBehaviour {
 				//kaya
 				kaya.transform.position = initialPosition_kaya;
 				kaya.transform.rotation = initialRotation_kaya;
-//
-//				//door
-//				outerDoor.transform.position = initialPosition_outerDoor;
-//				outerDoor.transform.rotation = initialRotation_outerDoor;
-//
-//				innerDoor.transform.position = initialPosition_innerDoor;
-//				innerDoor.transform.rotation = initialRotation_innerDoor;
 
 				//chairs
 				for (int i = 0; i < chairs.transform.childCount; i++) {
@@ -441,7 +435,7 @@ public class mainScript : MonoBehaviour {
 					cupcakeChild.transform.rotation = cupcakesRot [i];
 				}
 
-				// RESET FLOAT
+				// reset rigidbodies
 				rb_aj = aj.GetComponent<Rigidbody> ();
 				rb_aj.useGravity = true;
 				rb_aj.mass = 100f;
@@ -501,13 +495,13 @@ public class mainScript : MonoBehaviour {
 
 				resetG = true;
 			}
-
+			// turn on gorilla layer which then destroy objects in scene
 			gorilla.SetActive (true);
 			timeLeft -= Time.deltaTime;
-
+			
+			// if output is 1 from serial -> ERASE WOMEN ANIMATION
 		} else if (Value == 1 & timeLeft > 0) {
-			// ERASE WOMEN ANIMATION
-
+			// resetting everything
 			if (aj.transform.position != initialPosition_aj & resetH == false) {
 				resetF = false;
 				resetG = false;
@@ -554,13 +548,6 @@ public class mainScript : MonoBehaviour {
 				//kaya
 				kaya.transform.position = initialPosition_kaya;
 				kaya.transform.rotation = initialRotation_kaya;
-//
-//				//door
-//				outerDoor.transform.position = initialPosition_outerDoor;
-//				outerDoor.transform.rotation = initialRotation_outerDoor;
-//
-//				innerDoor.transform.position = initialPosition_innerDoor;
-//				innerDoor.transform.rotation = initialRotation_innerDoor;
 
 				//chairs
 				for (int i = 0; i < chairs.transform.childCount; i++) {
@@ -583,7 +570,7 @@ public class mainScript : MonoBehaviour {
 					cupcakeChild.transform.rotation = cupcakesRot [i];
 				}
 
-				// RESET FLOAT
+				// reset rigid bodies
 				rb_aj = aj.GetComponent<Rigidbody> ();
 				rb_aj.useGravity = true;
 				rb_aj.mass = 100f;
@@ -643,14 +630,16 @@ public class mainScript : MonoBehaviour {
 
 				resetH = true;
 			}
-
+			// hide woman layer + men dancing + show text on screen 
 			women.SetActive (false);
 			timeLeft -= Time.deltaTime;
 			ajAnimator.Play ("Dancing Running Man");
 			kayaAnimator.Play ("Dancing Running Man");
 			AddTextToCanvas ("Mission Accomplished: Women are erased", textCanvas);
+
+			// if output is 6 from serial -> ARMY OF MEN ANIMATION
 		} else if (Value == 6 & timeLeft > 0) {
-			// WHITE MEN ANIMATION
+			// resetting everything
 			if (aj.transform.position != initialPosition_aj & resetD == false) {
 				resetH = false;
 				resetG = false;
@@ -700,13 +689,6 @@ public class mainScript : MonoBehaviour {
 				//kaya
 				kaya.transform.position = initialPosition_kaya;
 				kaya.transform.rotation = initialRotation_kaya;
-////
-////				//door
-//				outerDoor.transform.position = initialPosition_outerDoor;
-//				outerDoor.transform.rotation = initialRotation_outerDoor;
-//
-//				innerDoor.transform.position = initialPosition_innerDoor;
-//				innerDoor.transform.rotation = initialRotation_innerDoor;
 
 				//chairs
 				for (int i = 0; i < chairs.transform.childCount; i++) {
@@ -729,7 +711,7 @@ public class mainScript : MonoBehaviour {
 					cupcakeChild.transform.rotation = cupcakesRot [i];
 				}
 
-				// RESET FLOAT
+				// resetting rigid bodies
 				rb_aj = aj.GetComponent<Rigidbody> ();
 				rb_aj.useGravity = true;
 				rb_aj.mass = 100f;
@@ -791,15 +773,10 @@ public class mainScript : MonoBehaviour {
 			}
 			door.SetActive (true);
 			timeLeft -= Time.deltaTime;
-			// DOOR OPENING
-//			if (innerDoor.transform.eulerAngles.y > 90 & innerDoor.transform.position.y < 20) {
-//				innerDoor.transform.rotation = Quaternion.Slerp (innerDoor.transform.rotation, Quaternion.Euler (0, -20, 0), Time.deltaTime * 2f);
-//				innerDoor.transform.position = new Vector3 (470.95f, outerDoor.transform.position.y, 670.2f);
-//			}
 
+			// if output is 2 from serial -> WINTER ANIMATION
 		} else if (Value == 2 & timeLeft > 0) {
-			// WINTER ANIMATION
-
+			// resetting everything
 			if (aj.transform.position != initialPosition_aj & resetW == false) {
 				resetH = false;
 				resetG = false;
@@ -869,7 +846,7 @@ public class mainScript : MonoBehaviour {
 					cupcakeChild.transform.rotation = cupcakesRot [i];
 				}
 
-				// RESET FLOAT
+				// reset rigid bodies
 				rb_aj = aj.GetComponent<Rigidbody> ();
 				rb_aj.useGravity = true;
 				rb_aj.mass = 100f;
@@ -900,7 +877,7 @@ public class mainScript : MonoBehaviour {
 				rb_table.drag = 20f;
 				rb_table.angularDrag = 10f;
 
-				//chairs
+				// chairs
 				foreach (Transform child in chairs.transform) {
 					rb_chair = child.GetComponent<Rigidbody> ();
 					rb_chair.useGravity = true;
@@ -909,7 +886,7 @@ public class mainScript : MonoBehaviour {
 					rb_chair.angularDrag = 0.05f;
 				}
 
-				//dishes
+				// dishes
 				foreach (Transform child in dishes.transform) {
 					rb_dish = child.GetComponent<Rigidbody> ();
 					rb_dish.useGravity = true;
@@ -929,6 +906,7 @@ public class mainScript : MonoBehaviour {
 				resetW = true;
 
 			}
+			// activate winter scene and characters start yelling
 			winter.SetActive (true);
 			claireAnimator.Play ("Yelling");
 			grannyAnimator.Play ("Yelling");
@@ -938,9 +916,9 @@ public class mainScript : MonoBehaviour {
 			dirlight.GetComponent<Light> ().intensity = 0.3f;
 			timeLeft -= Time.deltaTime;
 
+			// if output is 3 from serial -> FLOATING ANIMATION
 		} else if (Value == 3 & timeLeft > 0) {
-			// FLOAT ANIMATION
-
+			// resetting everything
 			if (aj.transform.position != initialPosition_aj & resetF == false) {
 				resetH = false;
 				resetG = false;
@@ -990,13 +968,6 @@ public class mainScript : MonoBehaviour {
 				//kaya
 				kaya.transform.position = initialPosition_kaya;
 				kaya.transform.rotation = initialRotation_kaya;
-//
-//				//door
-//				outerDoor.transform.position = initialPosition_outerDoor;
-//				outerDoor.transform.rotation = initialRotation_outerDoor;
-//
-//				innerDoor.transform.position = initialPosition_innerDoor;
-//				innerDoor.transform.rotation = initialRotation_innerDoor;
 
 				//chairs
 				for (int i = 0; i < chairs.transform.childCount; i++) {
@@ -1020,7 +991,7 @@ public class mainScript : MonoBehaviour {
 				}
 				resetF = true;
 			}
-
+			// reset rigid bodies
 			rb_aj = aj.GetComponent<Rigidbody>();
 			rb_aj.useGravity = false;
 			rb_aj.mass = 1f;
@@ -1077,7 +1048,7 @@ public class mainScript : MonoBehaviour {
 				rb_cupcake.drag = 0f;
 				rb_cupcake.angularDrag = 0.05f;
 			}
-
+			// fluctuate character positions
 			if (sine < Mathf.PI && sw == 0) {	//sine variable is fluctuating between 0 and Pi causing an up and down motion simulating floating, think sine curve
 				sine += Time.deltaTime;
 			}
@@ -1130,7 +1101,7 @@ public class mainScript : MonoBehaviour {
 					rb_cupcake.AddRelativeTorque (new Vector3 (xtorque, ytorque, ztorque));
 				}
 			}
-
+			// play floating animation 
 			claireAnimator.Play ("Floating");
 			grannyAnimator.Play ("Floating");
 			ajAnimator.Play ("Floating");
@@ -1138,10 +1109,12 @@ public class mainScript : MonoBehaviour {
 			timeLeft -= Time.deltaTime;
 
 		} else {
+			// resetting serial number and timer 
 			serialNum = 0;
 			timeLeft = 30f;
 			//print ("I am else");
 
+			// resetting everything
 			cupcakes.SetActive (false);
 			gorilla.SetActive (false);
 			door.SetActive (false);
@@ -1151,7 +1124,7 @@ public class mainScript : MonoBehaviour {
 			dirlight.GetComponent<Light> ().intensity = 1.8f;
 			Destroy(textCanvas.GetComponent<Text>(),0f);
 
-			// RESET FLOAT
+			// reset rigid bodies
 			rb_aj = aj.GetComponent<Rigidbody>();
 			rb_aj.useGravity = true;
 			rb_aj.mass = 100f;
@@ -1244,12 +1217,6 @@ public class mainScript : MonoBehaviour {
 			kaya.transform.position = initialPosition_kaya;
 			kaya.transform.rotation = initialRotation_kaya;
 
-			//door
-//			outerDoor.transform.position = initialPosition_outerDoor;
-//			outerDoor.transform.rotation = initialRotation_outerDoor;
-//
-//			innerDoor.transform.position = initialPosition_innerDoor;
-//			innerDoor.transform.rotation = initialRotation_innerDoor;
 
 			//chairs
 			for (int i = 0; i < chairs.transform.childCount; i++) {
