@@ -2,7 +2,7 @@
 
 Tea Party is Unity game that was a part of a pop up window display featured @ Broadway & 10th St from Nov 15th 2017 to Nov 19th 2017. 
 
-A user approached our window and activated a touch sensor that would then send a value to Arduino. This value wwas also sent  to the Unity game in order to activate a certain animation. Based on what value the user received, each animation would be different. 
+A user approached our window and activated a touch sensor that would then send a value to Arduino. This value was also sent  to the Unity game in order to activate a certain animation. Based on what value the user received, each animation would be different. 
 
 ### Tools Used
 Unity, Mixamo, Arduino, Serial (OSC Connection)
