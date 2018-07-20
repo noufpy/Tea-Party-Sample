@@ -4,6 +4,8 @@ Tea Party is Unity game that was a part of a pop up window display featured @ Br
 
 A user approached our window and activated a touch sensor that would then send a value to Arduino. This value was also sent  to the Unity game in order to activate a certain animation. Based on what value the user received, each animation would be different. 
 
+This repository is a sample of the code that was written to control each scene change.
+
 ### Tools Used
 Unity, Mixamo, Arduino, Serial (OSC Connection)
 
